@@ -442,17 +442,16 @@ static RAnalBlock *bbget(RAnalFunction *fcn, ut64 addr, bool jumpmid) {
 
 // TODO: split between bb.new and append_bb()
 static RAnalBlock *appendBasicBlock(RAnal *anal, RAnalFunction *fcn, ut64 addr) {
-	RAnalBlock *bb = r_anal_bb_new ();
+	r_return_val_if_fail (anal && fcn, NULL);
+	RAnalBlock *bb = r_anal_block_new (addr, 0);
 	if (bb) {
 		if (anal->verbose) {
 			eprintf ("Append bb at 0x%08"PFMT64x" (fcn 0x%08"PFMT64x ")\n", addr, fcn->addr);
 		}
-		bb->addr = addr;
-		bb->size = 0;
-		bb->jump = UT64_MAX;
-		bb->fail = UT64_MAX;
-		bb->type = 0; // TODO
-		r_anal_fcn_bbadd (fcn, bb);
+		r_anal_function_add_block (anal, fcn, bb);
+#if USE_SDB_CACHE
+		sdb_ptr_set (HB, sdb_fmt (SDB_KEY_BB, fcn->addr, bb->addr), bb, NULL);
+#endif
 		if (anal->cb.on_fcn_bb_new) {
 			anal->cb.on_fcn_bb_new (anal, anal->user, fcn, bb);
 		}
@@ -1815,7 +1814,7 @@ R_API bool r_anal_fcn_add_bb(RAnal *anal, RAnalFunction *fcn, ut64 addr, ut64 si
 		fcn_recurse (anal, fcn, addr, size, 1);
 		r_anal_fcn_update_tinyrange_bbs (fcn);
 		r_anal_fcn_set_size (anal, fcn, r_anal_fcn_size (fcn));
-		bb = r_anal_fcn_bbget_at (fcn, addr);
+		bb = r_anal_fcn_bbget_at (anal, fcn, addr);
 		if (!bb) {
 			if (fcn->addr == addr) {
 				return true;
@@ -2118,8 +2117,12 @@ R_API RAnalBlock *r_anal_fcn_bbget_in(const RAnal *anal, RAnalFunction *fcn, ut6
 	return NULL;
 }
 
-R_API RAnalBlock *r_anal_fcn_bbget_at(RAnalFunction *fcn, ut64 addr) {
+R_API RAnalBlock *r_anal_fcn_bbget_at(RAnal *anal, RAnalFunction *fcn, ut64 addr) {
 	r_return_val_if_fail (fcn && addr != UT64_MAX, NULL);
+	RAnalBlock *b = r_anal_get_block (anal, addr);
+	if (b) {
+		return b;
+	}
 #if USE_SDB_CACHE
 	return sdb_ptr_get (HB, sdb_fmt (SDB_KEY_BB, fcn->addr, addr), NULL);
 #else
@@ -2133,16 +2136,6 @@ R_API RAnalBlock *r_anal_fcn_bbget_at(RAnalFunction *fcn, ut64 addr) {
 	return NULL;
 #endif
 }
-
-
-R_API bool r_anal_fcn_bbadd(RAnalFunction *fcn, RAnalBlock *bb) {
-#if USE_SDB_CACHE
-	return sdb_ptr_set (HB, sdb_fmt (SDB_KEY_BB, fcn->addr, bb->addr), bb, NULL);
-#endif
-	r_list_append (fcn->bbs, bb);
-	return true;
-}
-
 
 /* directly set the size of the function
  * if fcn is in ana RAnal's fcn_tree, the anal MUST be passed,

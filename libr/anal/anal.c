@@ -122,6 +122,7 @@ R_API RAnal *r_anal_new(void) {
 	if (!anal) {
 		return NULL;
 	}
+	anal->ht_bbs = ht_up_new0 ();
 	anal->os = strdup (R_SYS_OS);
 	anal->reflines = NULL;
 	anal->esil_goto_limit = R_ANAL_ESIL_GOTO_LIMIT;

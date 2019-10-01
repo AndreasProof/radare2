@@ -19,6 +19,7 @@ R_API RAnalBlock *r_anal_bb_new() {
 		bb->stackptr = 0;
 		bb->parent_stackptr = INT_MAX;
 		bb->cmpval = UT64_MAX;
+		bb->fcns = r_list_newf (NULL);
 	}
 	return bb;
 }
@@ -30,6 +31,7 @@ R_API void r_anal_bb_free(RAnalBlock *bb) {
 		r_anal_diff_free (bb->diff);
 		free (bb->op_bytes);
 		r_anal_switch_op_free (bb->switch_op);
+		r_list_free (bb->fcns);
 		free (bb->label);
 		free (bb->op_pos);
 		free (bb->parent_reg_arena);

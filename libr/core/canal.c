@@ -1756,7 +1756,7 @@ R_API int r_core_anal_bb(RCore *core, RAnalFunction *fcn, ut64 addr, int head) {
 			if (bblen == R_ANAL_RET_END) { /* bb analysis complete */
 				ret = r_anal_fcn_bb_overlaps (fcn, bb);
 				if (ret == R_ANAL_RET_NEW) {
-					r_anal_fcn_bbadd (fcn, bb);
+					r_anal_function_add_block(core->anal, fcn, bb);
 					fail = bb->fail;
 					jump = bb->jump;
 					if (fail != -1) {
@@ -4460,7 +4460,7 @@ R_API void r_core_anal_fcn_merge(RCore *core, ut64 addr, ut64 addr2) {
 				max = bb->addr + bb->size;
 			}
 		}
-		r_anal_fcn_bbadd (f1, bb);
+		r_anal_function_add_block (core->anal, f1, bb);
 	}
 	// TODO: import data/code/refs
 	// update size

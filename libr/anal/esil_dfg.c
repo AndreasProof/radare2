@@ -130,7 +130,7 @@ static bool _edf_consume_2_set_reg(RAnalEsil *esil, const bool use_origin) {
 			RAnalEsilDFGNode *ev_node = r_anal_esil_dfg_node_new (edf, src);
 			r_strbuf_appendf (ev_node->content, ":var_%d", edf->idx++);
 			src_node = r_graph_add_node (edf->flow, ev_node);
-			_edf_reg_set(edf, src, src_node);
+			_edf_reg_set (edf, src, src_node);
 			r_graph_add_edge (edf->flow, n_reg, src_node);
 		}
 		// ignore internal vars for now
